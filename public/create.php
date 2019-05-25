@@ -3,30 +3,38 @@
 
 
 <?php
+require "../config.php";
 require "../common.php";
 
+
+
 if (isset($_POST['submit'])) {
-  require "../config.php";
 
-  $connection = new PDO($dsn, $username, $password, $options);
+  if (!hash_equals($_SESSION['csrf'], $_POST['csrf'])) die();
 
-  $new_user = array(
-    "firstname" => $_POST['firstname'],
-    "lastname"  => $_POST['lastname'],
-    "email"     => $_POST['email'],
-    "age"       => $_POST['age'],
-    "location"  => $_POST['location']
-  );
+  try {
+    $connection = new PDO($dsn, $username, $password, $options);
 
-  $sql = sprintf(
-    "INSERT INTO %s (%s) values (%s)",
-    "users",
-    implode(", ", array_keys($new_user)),
-    ":" . implode(", :", array_keys($new_user))
-  );
+    $new_user = array(
+      "firstname" => $_POST['firstname'],
+      "lastname"  => $_POST['lastname'],
+      "email"     => $_POST['email'],
+      "age"       => $_POST['age'],
+      "location"  => $_POST['location']
+    );
 
-  $statement = $connection->prepare($sql);
-  $statement->execute($new_user);
+    $sql = sprintf(
+      "INSERT INTO %s (%s) values (%s)",
+      "users",
+      implode(", ", array_keys($new_user)),
+      ":" . implode(", :", array_keys($new_user))
+    );
+
+    $statement = $connection->prepare($sql);
+    $statement->execute($new_user);
+  } catch (PDOException $error) {
+    echo $sql . "<br>" . $error->getMessage();
+  }
 }
 ?>
 
@@ -34,7 +42,6 @@ if (isset($_POST['submit'])) {
 <?php if (isset($_POST['submit']) && $statement) { ?>
 <?php echo escape($_POST['firstname']); ?> successfully added.
 <?php } ?>
-
 
 
 

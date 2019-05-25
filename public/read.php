@@ -1,28 +1,27 @@
-<?php include "templates/header.php"; ?>
-
 <?php
+/**
+ * Function to query information based on 
+ * a parameter: in this case, location.
+ *
+ */
+require "../config.php";
+require "../common.php";
 if (isset($_POST['submit'])) {
+  if (!hash_equals($_SESSION['csrf'], $_POST['csrf'])) die();
   try {
-    require "../config.php";
-    require "../common.php";
-
     $connection = new PDO($dsn, $username, $password, $options);
-    // fetch data code will go here
     $sql = "SELECT * FROM users WHERE location = :location";
-
     $location = $_POST['location'];
-
     $statement = $connection->prepare($sql);
     $statement->bindParam(':location', $location, PDO::PARAM_STR);
     $statement->execute();
-
     $result = $statement->fetchAll();
   } catch (PDOException $error) {
     echo $sql . "<br>" . $error->getMessage();
   }
 }
 ?>
-
+<?php require "templates/header.php"; ?>
 
 <?php
 if (isset($_POST['submit'])) {
@@ -42,7 +41,7 @@ if (isset($_POST['submit'])) {
     </tr>
   </thead>
   <tbody>
-    <?php foreach ($result as $row) { ?>
+    <?php foreach ($result as $row) : ?>
     <tr>
       <td><?php echo escape($row["id"]); ?></td>
       <td><?php echo escape($row["firstname"]); ?></td>
@@ -52,18 +51,18 @@ if (isset($_POST['submit'])) {
       <td><?php echo escape($row["location"]); ?></td>
       <td><?php echo escape($row["date"]); ?> </td>
     </tr>
-    <?php } ?>
+    <?php endforeach; ?>
   </tbody>
 </table>
 <?php } else { ?>
-> No results found for <?php echo escape($_POST['location']); ?>.
+<blockquote>No results found for <?php echo escape($_POST['location']); ?>.</blockquote>
 <?php }
 } ?>
-
 
 <h2>Find user based on location</h2>
 
 <form method="post">
+  <input name="csrf" type="hidden" value="<?php echo escape($_SESSION['csrf']); ?>">
   <label for="location">Location</label>
   <input type="text" id="location" name="location">
   <input type="submit" name="submit" value="View Results">
@@ -71,4 +70,4 @@ if (isset($_POST['submit'])) {
 
 <a href="index.php">Back to home</a>
 
-<?php include "templates/footer.php"; ?>
+<?php require "templates/footer.php"; ?>
